@@ -9,6 +9,8 @@ from .serializers import (
     UserCreationSerializer,
     UserLoginSerializer,
     UserUpdateSerializer)
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.serializers import ValidationError
 
 
 class UserRegisterAPIView(CreateAPIView):
@@ -57,6 +59,7 @@ class UserLoginAPIView(APIView):
             current_user = User.objects.get(username=serializer.data['username'])
             login(request, current_user)
             return Response(new_data, status=HTTP_200_OK)
+
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 
@@ -71,6 +74,7 @@ class UserUpdateAPIView(RetrieveUpdateAPIView):
         serializer_class (class): The serializer class for user updates.
     """
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
     queryset = User.objects.all()
     serializer_class = UserUpdateSerializer
 
@@ -83,6 +87,18 @@ class UserUpdateAPIView(RetrieveUpdateAPIView):
         """
         return self.request.user
 
+    def update(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+        except ValidationError as e:
+            print(e.detail, "req", request)
+            raise ValidationError('This email is already in use')
+
+        return Response(serializer.data)
+
 
 class UserLogoutAPIView(APIView):
     """
@@ -90,6 +106,8 @@ class UserLogoutAPIView(APIView):
     Allows authenticated users to log out.
 
     """
+    permission_classes = [permissions.IsAuthenticated]
+
     def post(self, request):
         """
         Handle user logout request.
@@ -101,4 +119,4 @@ class UserLogoutAPIView(APIView):
             Response: Response object with HTTP_200_OK status indicating successful logout.
         """
         logout(request)
-        return Response(status=HTTP_200_OK)
+        return Response('user logged out', status=HTTP_200_OK)

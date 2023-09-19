@@ -1,6 +1,9 @@
 from rest_framework.serializers import ModelSerializer, ValidationError, CharField, EmailField
 from django.contrib.auth.models import User
 from django.db.models import Q
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 class UserCreationSerializer(ModelSerializer):
     """
@@ -18,6 +21,7 @@ class UserCreationSerializer(ModelSerializer):
     - create(validated_data): Creates a new user object.
 
     """
+
     class Meta:
         model = User
         fields = ['username', 'first_name', 'last_name', 'email', 'password']
@@ -67,6 +71,7 @@ class UserCreationSerializer(ModelSerializer):
         user_obj.save()
         return validated_data
 
+
 class UserLoginSerializer(ModelSerializer):
     """
     Serializer for user login.
@@ -82,14 +87,16 @@ class UserLoginSerializer(ModelSerializer):
     - validate(data): Validates the user's login data.
 
     """
-    token = CharField(allow_blank=True, read_only=True)
+    access_token = CharField(allow_blank=True, read_only=True)
+    refresh_token = CharField(allow_blank=True, read_only=True)
     first_name = CharField(read_only=True)
     last_name = CharField(read_only=True)
     username = CharField(required=True)
+    role = CharField(read_only=True)
 
     class Meta:
         model = User
-        fields = ['username', 'password', 'first_name', 'last_name', 'token']
+        fields = ['username', 'password', 'first_name', 'last_name', 'email', 'role', 'access_token', 'refresh_token']
         extra_kwargs = {'password': {'write_only': True}}
 
     def validate(self, data):
@@ -113,11 +120,18 @@ class UserLoginSerializer(ModelSerializer):
         user_obj = user.first()
         if not user_obj or not user_obj.check_password(password):
             raise ValidationError('Invalid Credentials please try again.')
-        data['token'] = f'dummy token for {username}'
+
+        refresh = RefreshToken.for_user(user_obj)
+
+        data['access_token'] = str(refresh.access_token)
+        data['refresh_token'] = str(refresh)
         data['first_name'] = user_obj.first_name
         data['last_name'] = user_obj.last_name
         data['email'] = user_obj.email
+        data['role'] = 'admin' if user_obj.is_superuser else 'candidate'
+
         return data
+
 
 class UserUpdateSerializer(ModelSerializer):
     """
