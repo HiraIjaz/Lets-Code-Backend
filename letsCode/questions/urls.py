@@ -1,7 +1,7 @@
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+
 from .views import QuestionViewSet
 
-# Create a router and register the QuestionViewSet with it.
-router = DefaultRouter()
-router.register(r"api/questions", QuestionViewSet)
+question_router = DefaultRouter()
+question_router.register(r"api/questions", QuestionViewSet)

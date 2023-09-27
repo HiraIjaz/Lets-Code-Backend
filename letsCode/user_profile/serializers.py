@@ -1,7 +1,12 @@
-from rest_framework.serializers import ModelSerializer, ValidationError, CharField, EmailField
 from django.contrib.auth.models import User
 from django.db.models import Q
 from rest_framework.response import Response
+from rest_framework.serializers import (
+    CharField,
+    EmailField,
+    ModelSerializer,
+    ValidationError,
+)
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
@@ -24,8 +29,8 @@ class UserCreationSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'email', 'password']
-        extra_kwargs = {'password': {'write_only': True}}
+        fields = ["username", "first_name", "last_name", "email", "password"]
+        extra_kwargs = {"password": {"write_only": True}}
 
     def validate(self, data):
         """
@@ -40,7 +45,7 @@ class UserCreationSerializer(ModelSerializer):
         Raises:
         - ValidationError: If the email is already registered.
         """
-        email = data['email']
+        email = data["email"]
         user_qs = User.objects.filter(email=email)
         if user_qs.exists():
             raise ValidationError("This user has already registered.")
@@ -56,16 +61,13 @@ class UserCreationSerializer(ModelSerializer):
         Returns:
         - dict: The validated data.
         """
-        username = validated_data['username']
-        first_name = validated_data['first_name']
-        last_name = validated_data['last_name']
-        email = validated_data['email']
-        password = validated_data['password']
+        username = validated_data["username"]
+        first_name = validated_data["first_name"]
+        last_name = validated_data["last_name"]
+        email = validated_data["email"]
+        password = validated_data["password"]
         user_obj = User(
-            username=username,
-            email=email,
-            first_name=first_name,
-            last_name=last_name
+            username=username, email=email, first_name=first_name, last_name=last_name
         )
         user_obj.set_password(password)
         user_obj.save()
@@ -87,6 +89,7 @@ class UserLoginSerializer(ModelSerializer):
     - validate(data): Validates the user's login data.
 
     """
+
     access_token = CharField(allow_blank=True, read_only=True)
     refresh_token = CharField(allow_blank=True, read_only=True)
     first_name = CharField(read_only=True)
@@ -96,8 +99,17 @@ class UserLoginSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'password', 'first_name', 'last_name', 'email', 'role', 'access_token', 'refresh_token']
-        extra_kwargs = {'password': {'write_only': True}}
+        fields = [
+            "username",
+            "password",
+            "first_name",
+            "last_name",
+            "email",
+            "role",
+            "access_token",
+            "refresh_token",
+        ]
+        extra_kwargs = {"password": {"write_only": True}}
 
     def validate(self, data):
         """
@@ -112,23 +124,23 @@ class UserLoginSerializer(ModelSerializer):
         Raises:
         - ValidationError: If the provided credentials are invalid.
         """
-        username = data.get('username', None)
-        password = data.get('password', None)
+        username = data.get("username", None)
+        password = data.get("password", None)
         if not username:
-            raise ValidationError('User is required to login.')
+            raise ValidationError("User is required to login.")
         user = User.objects.filter(Q(username=username)).distinct()
         user_obj = user.first()
         if not user_obj or not user_obj.check_password(password):
-            raise ValidationError('Invalid Credentials please try again.')
+            raise ValidationError("Invalid Credentials please try again.")
 
         refresh = RefreshToken.for_user(user_obj)
 
-        data['access_token'] = str(refresh.access_token)
-        data['refresh_token'] = str(refresh)
-        data['first_name'] = user_obj.first_name
-        data['last_name'] = user_obj.last_name
-        data['email'] = user_obj.email
-        data['role'] = 'admin' if user_obj.is_superuser else 'candidate'
+        data["access_token"] = str(refresh.access_token)
+        data["refresh_token"] = str(refresh)
+        data["first_name"] = user_obj.first_name
+        data["last_name"] = user_obj.last_name
+        data["email"] = user_obj.email
+        data["role"] = "admin" if user_obj.is_superuser else "candidate"
 
         return data
 
@@ -149,11 +161,12 @@ class UserUpdateSerializer(ModelSerializer):
     - update(instance, validated_data): Updates the user profile.
 
     """
+
     email = EmailField(required=True)
 
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'email']
+        fields = ["username", "first_name", "last_name", "email"]
 
     def validate_email(self, value):
         """
@@ -168,9 +181,9 @@ class UserUpdateSerializer(ModelSerializer):
         Raises:
         - ValidationError: If the email is already in use.
         """
-        user = self.context['request'].user
+        user = self.context["request"].user
         if User.objects.exclude(pk=user.pk).filter(email=value).exists():
-            raise ValidationError('This email is already in use.')
+            raise ValidationError("This email is already in use.")
         return value
 
     def validate_username(self, value):
@@ -186,10 +199,10 @@ class UserUpdateSerializer(ModelSerializer):
         Raises:
         - ValidationError: If the username is already in use.
         """
-        user = self.context['request'].user
+        user = self.context["request"].user
         print(User.objects.exclude(pk=user.pk).filter(username=value))
         if User.objects.exclude(pk=user.pk).filter(username=value).exists():
-            raise ValidationError('This username is already in use.')
+            raise ValidationError("This username is already in use.")
         return value
 
     def update(self, instance, validated_data):
@@ -203,9 +216,9 @@ class UserUpdateSerializer(ModelSerializer):
         Returns:
         - User: The updated user object.
         """
-        instance.first_name = validated_data['first_name']
-        instance.last_name = validated_data['last_name']
-        instance.email = validated_data['email']
-        instance.username = validated_data['username']
+        instance.first_name = validated_data["first_name"]
+        instance.last_name = validated_data["last_name"]
+        instance.email = validated_data["email"]
+        instance.username = validated_data["username"]
         instance.save()
         return instance

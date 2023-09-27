@@ -1,11 +1,19 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets
+from rest_framework.exceptions import APIException, NotFound
+from rest_framework.permissions import (
+    IsAdminUser,
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
+from rest_framework.response import Response
+from rest_framework.status import (
+    HTTP_201_CREATED,
+    HTTP_204_NO_CONTENT,
+    HTTP_400_BAD_REQUEST,
+)
+
 from .models import Question
 from .serializers import QuestionSerializer
-from django.http import JsonResponse
-from rest_framework.response import Response
-from rest_framework.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_204_NO_CONTENT
-from rest_framework.permissions import IsAdminUser, IsAuthenticated , IsAuthenticatedOrReadOnly
-from rest_framework.exceptions import NotFound, APIException
 
 
 class QuestionViewSet(viewsets.ModelViewSet):
@@ -13,7 +21,7 @@ class QuestionViewSet(viewsets.ModelViewSet):
     serializer_class = QuestionSerializer
 
     def has_permission(self, request, view):
-        if self.action == 'list':
+        if self.action == "list":
             return True
         else:
             permission_classes = [IsAdminUser]
@@ -23,9 +31,9 @@ class QuestionViewSet(viewsets.ModelViewSet):
         serializer = QuestionSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(serializer.data, status=HTTP_201_CREATED)
+            return Response(serializer.data, status=HTTP_201_CREATED)
         else:
-            return JsonResponse(serializer.errors, status=HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
         try:

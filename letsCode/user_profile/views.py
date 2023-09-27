@@ -1,16 +1,18 @@
-from django.contrib.auth.models import User
 from django.contrib.auth import login, logout
+from django.contrib.auth.models import User
+from rest_framework import permissions
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
 from rest_framework.response import Response
-from rest_framework import permissions
+from rest_framework.serializers import ValidationError
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 from .serializers import (
     UserCreationSerializer,
     UserLoginSerializer,
-    UserUpdateSerializer)
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.serializers import ValidationError
+    UserUpdateSerializer,
+)
 
 
 class UserRegisterAPIView(CreateAPIView):
@@ -22,6 +24,7 @@ class UserRegisterAPIView(CreateAPIView):
        serializer_class (class): The serializer class for user creation.
        queryset (QuerySet): Queryset containing all User objects.
     """
+
     serializer_class = UserCreationSerializer
     queryset = User.objects.all()
 
@@ -56,7 +59,7 @@ class UserLoginAPIView(APIView):
         serializer = UserLoginSerializer(data=data)
         if serializer.is_valid(raise_exception=True):
             new_data = serializer.data
-            current_user = User.objects.get(username=serializer.data['username'])
+            current_user = User.objects.get(username=serializer.data["username"])
             login(request, current_user)
             print(request.user)
             return Response(new_data, status=HTTP_200_OK)
@@ -74,6 +77,7 @@ class UserUpdateAPIView(RetrieveUpdateAPIView):
         queryset (QuerySet): Queryset containing all User objects.
         serializer_class (class): The serializer class for user updates.
     """
+
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [JWTAuthentication]
     queryset = User.objects.all()
@@ -96,7 +100,7 @@ class UserUpdateAPIView(RetrieveUpdateAPIView):
             self.perform_update(serializer)
             return Response(serializer.data)
         except ValidationError as e:
-            return Response({'detail': str(e)}, status=HTTP_400_BAD_REQUEST)
+            return Response({"detail": str(e)}, status=HTTP_400_BAD_REQUEST)
 
 
 class UserLogoutAPIView(APIView):
@@ -105,6 +109,7 @@ class UserLogoutAPIView(APIView):
     Allows authenticated users to log out.
 
     """
+
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
@@ -118,4 +123,4 @@ class UserLogoutAPIView(APIView):
             Response: Response object with HTTP_200_OK status indicating successful logout.
         """
         logout(request)
-        return Response('user logged out', status=HTTP_200_OK)
+        return Response("user logged out", status=HTTP_200_OK)
