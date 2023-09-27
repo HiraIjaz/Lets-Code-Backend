@@ -187,6 +187,7 @@ class UserUpdateSerializer(ModelSerializer):
         - ValidationError: If the username is already in use.
         """
         user = self.context['request'].user
+        print(User.objects.exclude(pk=user.pk).filter(username=value))
         if User.objects.exclude(pk=user.pk).filter(username=value).exists():
             raise ValidationError('This username is already in use.')
         return value

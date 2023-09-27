@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'user_profile',
     'questions',
+    'assignments',
     'rest_framework',
     'rest_framework_simplejwt'
 
@@ -58,6 +59,7 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'letsCode.urls'
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
+
 
 TEMPLATES = [
     {
@@ -174,7 +176,7 @@ SIMPLE_JWT = {
 }
 
 
-
+SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 
 
 

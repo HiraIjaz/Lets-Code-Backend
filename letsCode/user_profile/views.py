@@ -58,6 +58,7 @@ class UserLoginAPIView(APIView):
             new_data = serializer.data
             current_user = User.objects.get(username=serializer.data['username'])
             login(request, current_user)
+            print(request.user)
             return Response(new_data, status=HTTP_200_OK)
 
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
@@ -93,11 +94,9 @@ class UserUpdateAPIView(RetrieveUpdateAPIView):
             serializer = self.get_serializer(instance, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
+            return Response(serializer.data)
         except ValidationError as e:
-            print(e.detail, "req", request)
-            raise ValidationError('This email is already in use')
-
-        return Response(serializer.data)
+            return Response({'detail': str(e)}, status=HTTP_400_BAD_REQUEST)
 
 
 class UserLogoutAPIView(APIView):
