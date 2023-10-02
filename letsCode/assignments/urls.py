@@ -1,18 +1,22 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
-from .views import (AssignmentCreateView, AssignmentListView,
-                    AssignmentUpdateView, EnrollmentsViewSet,
-                    UserAssignmentListView)
+from .views import (
+    ApprovedEnrollmentsForUserListView,
+    AssignmentCreateView,
+    AssignmentListView,
+    AssignmentUpdateView,
+    EnrollmentsViewSet,
+)
 
 enrollment_router = DefaultRouter()
-enrollment_router.register(r"api/enrollment", EnrollmentsViewSet)
+enrollment_router.register(r"api/enrollments", EnrollmentsViewSet)
 
 urlpatterns = [
     path(
-        "user/<str:username>/assignments/",
-        UserAssignmentListView.as_view(),
-        name="user-assignments",
+        "user-enrollments/",
+        ApprovedEnrollmentsForUserListView.as_view(),
+        name="user-enrollments",
     ),
     path("assignments/", AssignmentListView.as_view(), name="assignments"),
     path(

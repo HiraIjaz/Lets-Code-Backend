@@ -1,5 +1,6 @@
 from rest_framework import viewsets
 from rest_framework.exceptions import APIException, NotFound
+from rest_framework.generics import ListAPIView
 from rest_framework.permissions import (
     IsAdminUser,
     IsAuthenticated,
@@ -11,6 +12,7 @@ from rest_framework.status import (
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
 )
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Question
 from .serializers import QuestionSerializer
@@ -25,7 +27,13 @@ class QuestionViewSet(viewsets.ModelViewSet):
             return True
         else:
             permission_classes = [IsAdminUser]
+            authentication_classes = [JWTAuthentication]
         return [permission() for permission in permission_classes]
+
+    def list(self, request):
+        queryset = Question.objects.filter(isDeleted=False)
+        serializer = QuestionSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         serializer = QuestionSerializer(data=request.data)

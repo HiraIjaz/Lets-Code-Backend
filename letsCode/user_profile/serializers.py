@@ -10,6 +10,12 @@ from rest_framework.serializers import (
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
+class UserSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["username"]
+
+
 class UserCreationSerializer(ModelSerializer):
     """
     Serializer for user registration.
@@ -100,6 +106,7 @@ class UserLoginSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = [
+            "id",
             "username",
             "password",
             "first_name",
@@ -138,6 +145,7 @@ class UserLoginSerializer(ModelSerializer):
         data["access_token"] = str(refresh.access_token)
         data["refresh_token"] = str(refresh)
         data["first_name"] = user_obj.first_name
+        data["id"] = user_obj.id
         data["last_name"] = user_obj.last_name
         data["email"] = user_obj.email
         data["role"] = "admin" if user_obj.is_superuser else "candidate"

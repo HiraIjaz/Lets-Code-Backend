@@ -18,16 +18,15 @@ class Assignment(models.Model):
 
 class AssignmentEnrollment(models.Model):
     STATUS_CHOICES = (
-        ('pending', 'Pending'),
-        ('approved', 'Approved'),
+        ("pending", "Pending"),
+        ("approved", "Approved"),
+        ("attempted", "attempted"),
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     enrollment_date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    # score = models.IntegerField(default=0)
 
     objects = models.Manager()
-
-    def __str__(self):
-        return f"{self.user} enrolled in {self.assignment}"
