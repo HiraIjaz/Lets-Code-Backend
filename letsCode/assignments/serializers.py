@@ -10,7 +10,7 @@ from .models import Assignment, AssignmentEnrollment
 class AssignmentEnrollmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = AssignmentEnrollment
-        fields = ["id", "assignment", "status", "user"]
+        fields = ["id", "assignment", "status", "user", "score"]
 
 
 class AssignmentSerializer(serializers.ModelSerializer):

@@ -6,6 +6,7 @@ from .views import (
     AssignmentCreateView,
     AssignmentListView,
     AssignmentUpdateView,
+    EnrollmentsListView,
     EnrollmentsViewSet,
 )
 
@@ -17,6 +18,11 @@ urlpatterns = [
         "user-enrollments/",
         ApprovedEnrollmentsForUserListView.as_view(),
         name="user-enrollments",
+    ),
+    path(
+        "all-enrollments/",
+        EnrollmentsListView.as_view(),
+        name="all-enrollments",
     ),
     path("assignments/", AssignmentListView.as_view(), name="assignments"),
     path(

@@ -27,6 +27,6 @@ class AssignmentEnrollment(models.Model):
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     enrollment_date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
-    # score = models.IntegerField(default=0)
+    score = models.IntegerField(default=0)
 
     objects = models.Manager()
