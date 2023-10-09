@@ -10,7 +10,7 @@ class Question(models.Model):
     title = models.TextField(help_text="title or description of the question")
     # The 'data' field stores JSON data representing the question details.
     data = models.JSONField()
-    type = models.CharField(max_length=100,choices=TYPE_CHOICES, default="mcq")
+    type = models.CharField(max_length=100, choices=TYPE_CHOICES, default="mcq")
     isDeleted = models.BooleanField(default=False)
 
     objects = models.Manager()

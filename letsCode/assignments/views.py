@@ -1,9 +1,11 @@
-from django.contrib.auth.models import User
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import (
+    HTTP_200_OK,
     HTTP_201_CREATED,
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
@@ -23,7 +25,20 @@ class ApprovedEnrollmentsForUserListView(ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = AssignmentEnrollment.objects.filter(user=user.id, status="approved")
+        queryset = AssignmentEnrollment.objects.filter(
+            Q(user=user.id, status="approved") | Q(user=user.id, status="attempted")
+        )
+        return queryset
+
+
+class EnrollmentsListView(ListAPIView):
+    serializer_class = AssignmentEnrollmentSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = queryset = AssignmentEnrollment.objects.filter(
+            Q(status="approved") | Q(status="attempted")
+        )
         return queryset
 
 
@@ -32,10 +47,12 @@ class EnrollmentsViewSet(viewsets.ModelViewSet):
     serializer_class = AssignmentEnrollmentSerializer
 
     def has_permission(self, request, view):
-        if self.action == "post":
+        if self.action == "post" or self.action == "patch":
             permission_classes = [IsAuthenticated]
             authentication_classes = [JWTAuthentication]
             return [permission() for permission in permission_classes]
+        elif self.action == "get":
+            return True
         else:
             permission_classes = [IsAdminUser, IsAuthenticated]
             authentication_classes = [JWTAuthentication]
@@ -47,17 +64,15 @@ class EnrollmentsViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def update(self, request, pk=None):
-        try:
-            enrollment = AssignmentEnrollment.objects.get(pk=pk)
-        except:
-            return Response(status=HTTP_404_NOT_FOUND)
+        enrollment = get_object_or_404(AssignmentEnrollment, pk=pk)
 
-        new_status = "approved"
+        serializer = AssignmentEnrollmentSerializer(enrollment, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
-        enrollment.status = new_status
-        enrollment.save()
-
-        serializer = AssignmentEnrollmentSerializer(enrollment)
         return Response(serializer.data)
 
     def create(self, request):
@@ -73,6 +88,17 @@ class EnrollmentsViewSet(viewsets.ModelViewSet):
         user = self.request.user
         serializer = AssignmentEnrollmentSerializer(user=user.id, data=request.data)
 
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+
+    def partial_update(self, request, pk):
+        instance = get_object_or_404(AssignmentEnrollment, id=pk)
+        serializer = AssignmentEnrollmentSerializer(
+            instance, data=request.data, partial=True
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=HTTP_201_CREATED)
