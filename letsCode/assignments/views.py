@@ -51,7 +51,7 @@ class EnrollmentsViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
             authentication_classes = [JWTAuthentication]
             return [permission() for permission in permission_classes]
-        if self.action == "get":
+        elif self.action == "get":
             return True
         else:
             permission_classes = [IsAdminUser, IsAuthenticated]
@@ -95,7 +95,7 @@ class EnrollmentsViewSet(viewsets.ModelViewSet):
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
     def partial_update(self, request, pk):
-        instance = get_object_or_404(AssignmentEnrollment, pk=pk)
+        instance = get_object_or_404(AssignmentEnrollment, id=pk)
         serializer = AssignmentEnrollmentSerializer(
             instance, data=request.data, partial=True
         )
